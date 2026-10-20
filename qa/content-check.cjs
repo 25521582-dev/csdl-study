@@ -50,3 +50,22 @@ for(const topic of topics){
   sections+=lesson.sections.length;exercises+=lesson.exercises.length;
 }
 console.log(`PASS: 12 detailed chapters, ${sections} sections and ${exercises} self-check exercises with solutions.`);
+vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../dist/assessments.js'),'utf8'),sandbox);
+const assessments=sandbox.window.CSDL_ASSESSMENTS;
+assert.equal(assessments.length,1);
+const imported=assessments[0].questions;
+const originalKey='D D B A A C A A B C C B C D A D A B B D A C A D D C C A B B D A D D C D B A D B'.split(' ');
+assert.equal(imported.length,40);
+assert.equal(new Set([...questions,...imported].map(q=>q.id)).size,184);
+for(const [i,q] of imported.entries()){
+  assert.equal(q.sourceNumber,i+1);
+  assert.equal(q.answer,originalKey[i].charCodeAt(0)-65);
+  assert.equal(q.options.length,4);
+  assert.equal(new Set(q.options).size,4);
+  assert.ok(topics.some(t=>t.id===q.topic));
+  assert.ok(q.explanation.length>35);
+  assert.ok(q.sourcePage>=1&&q.sourcePage<=21);
+  assert.equal(q.assessment,'kiem-tra-2');
+}
+for(const number of [4,13,18,21,25,30,35,40])assert.ok(imported[number-1].note.length>40);
+console.log('PASS: 40 imported questions, source numbers/pages, original answer key and contextual notes; 184 unique questions overall.');
